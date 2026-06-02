@@ -10,6 +10,7 @@ import { validate as uuidValidate } from 'uuid';
 import {snackActions} from "../../utilities/Snackbar";
 import  DialogContentText  from '@mui/material/DialogContentText';
 import {CallbacksTabsSelectTable} from "./CallbacksTabsSelectTable";
+import {getCommandParameterGroupNames, getPreferredCommandParameterGroupName} from "./TaskParameterGroups";
 
 
 const callbacksAndFeaturesQuery = gql`
@@ -61,7 +62,7 @@ export function CallbacksTabsTaskMultipleDialog({onClose, callback}) {
       }
         const callbacks = selectedData.current.map( c => c.display_id)
         if(callbacks.length > 0){
-            if(finalTaskedParameters.current){
+            if(finalTaskedParameters.current !== null && finalTaskedParameters.current !== undefined){
                 taskingData.current = {...taskingData.current, callback_display_ids: callbacks, openDialog: false, parameters: finalTaskedParameters.current};
             }else{
                 taskingData.current = {...taskingData.current, callback_display_ids: callbacks, openDialog: true};
@@ -94,15 +95,20 @@ export function CallbacksTabsTaskMultipleDialog({onClose, callback}) {
             newTaskingLocation = "browserscript_modified";
         }
         if(cmd.commandparameters.length === 0){
+            const parameterGroupName = cmdGroupNames[0] || getPreferredCommandParameterGroupName(cmd);
+            const openDialogForEmptyGroup = force_parsed_popup && getCommandParameterGroupNames(cmd).length > 0;
             // if there are no parameters, just send whatever the user types along
-            finalTaskedParameters.current = params;
+            finalTaskedParameters.current = openDialogForEmptyGroup ? undefined : params;
             taskingData.current = {
                 cmd: cmd.cmd,
                 callback_id: callback.id,
-                openDialog: false,
+                openDialog: openDialogForEmptyGroup,
                 parameters: params,
+                parsedParameters: parsed,
+                groupName: parameterGroupName,
                 tasking_location: newTaskingLocation,
                 dontShowSuccessDialog: false,
+                parameter_group_name: parameterGroupName,
                 payload_type: cmd.payloadtype?.name,
             };
             submitTasking();
@@ -110,7 +116,7 @@ export function CallbacksTabsTaskMultipleDialog({onClose, callback}) {
         }else{
             // check if there's a "file" component that needs to be displayed
             const fileParamExists = cmd.commandparameters.find(param => {
-                if(param.parameter_type === "File" && cmdGroupNames.includes(param.parameter_group_name)){
+                if(param.parameter_type === "File" && cmdGroupNames.includes(param.parameter_group_name || "Default")){
                     if(!(param.cli_name in parsed || param.name in parsed || param.display_name in parsed)){
                         return true;
                     }
@@ -126,12 +132,12 @@ export function CallbacksTabsTaskMultipleDialog({onClose, callback}) {
             });//console.log("missing File for group? ", fileParamExists, cmdGroupNames);
             let missingRequiredPrams = false;
             if(cmdGroupNames.length === 1){
-                const missingParams = cmd.commandparameters.filter(param => param.required && param.parameter_group_name === cmdGroupNames[0] && !(param.cli_name in parsed || param.name in parsed || param.display_name in parsed));
+                const missingParams = cmd.commandparameters.filter(param => param.required && (param.parameter_group_name || "Default") === cmdGroupNames[0] && !(param.cli_name in parsed || param.name in parsed || param.display_name in parsed));
                 if(missingParams.length > 0){
                     missingRequiredPrams = true;
                     console.log("missing required params", missingParams,parsed);
                 }
-            }else if(cmdGroupNames > 1 && !force_parsed_popup){
+            }else if(cmdGroupNames.length > 1 && !force_parsed_popup){
                 // need to force a popup because the tasking is ambiguous
                 console.log("command is ambiguous");
                 force_parsed_popup = true;
@@ -225,6 +231,7 @@ export function CallbacksTabsTaskMultipleDialog({onClose, callback}) {
                   tasking_location={taskingData.current?.tasking_location || "command_line"}
                   dontShowSuccessDialog={taskingData.current?.dontShowSuccessDialog || false}
                   selectCallback={taskingData.current?.selectCallback || false}
+                  parameter_group_name={taskingData.current?.parameter_group_name || undefined}
                   onTasked={onTasked}/>
           }
           <DialogActions>

@@ -6,6 +6,7 @@ import {MythicSelectFromListDialog} from '../../MythicComponents/MythicSelectFro
 import {createTaskingMutation} from './CallbackMutations';
 import {TaskParametersDialog} from './TaskParametersDialog';
 import { MythicConfirmDialog } from '../../MythicComponents/MythicConfirmDialog';
+import {getCommandParameterGroupNames, getPreferredCommandParameterGroupName} from "./TaskParameterGroups";
 
 const getLoadedCommandsBasedOnInput = ({cmd, ui_feature}) => {
     let filter_string = "";
@@ -45,6 +46,8 @@ const getLoadedCommandsBasedOnInput = ({cmd, ui_feature}) => {
                   commandparameters {
                     id
                     type 
+                    parameter_group_name
+                    ui_position
                   }
                   supported_ui_features
                 }
@@ -85,7 +88,7 @@ query getAvailableCallbacksWithUIFeature($ui_feature: jsonb!) {
 `;
 export const TaskFromUIButton = ({callback_id, callback_display_ids, cmd, ui_feature, parameters, onTasked, tasking_location,
                                      getConfirmation, openDialog, acceptText, dontShowSuccessDialog, token,
-                                    selectCallback
+                                    selectCallback, parameter_group_name
                                  }) =>{
     const [fileBrowserCommands, setFileBrowserCommands] = React.useState([]);
     const [openSelectCommandDialog, setOpenSelectCommandDialog] = React.useState(false);
@@ -133,10 +136,10 @@ export const TaskFromUIButton = ({callback_id, callback_display_ids, cmd, ui_fea
             }
             let availableCommands = data.callback_by_pk.loadedcommands.reduce( (prev, cur) => {
                 if(typeof(parameters) === "string"){
-                    return [...prev, {...cur.command, "parsedParameters": {}}];
+                    return [...prev, {...cur.command, "parsedParameters": {}, groupName: parameter_group_name}];
                 }else{
                     console.log("adding in parsed parameters", parameters);
-                    return [...prev, {...cur.command, "parsedParameters": parameters}];
+                    return [...prev, {...cur.command, "parsedParameters": parameters, groupName: parameter_group_name}];
                 }
                 
             }, []);
@@ -207,7 +210,7 @@ export const TaskFromUIButton = ({callback_id, callback_display_ids, cmd, ui_fea
     });
     const onSubmitSelectedCommand = (cmd) => {
         setOpenSelectCommandDialog(false);
-        setSelectedCommand(cmd);
+        setSelectedCommand({...cmd, groupName: parameter_group_name || cmd.groupName});
     }
     const onSubmitTasking = ({variables}) => {
         if(getConfirmation){
@@ -305,7 +308,8 @@ export const TaskFromUIButton = ({callback_id, callback_display_ids, cmd, ui_fea
         if(selectedCommand.commandparameters === undefined){
             return;
         }
-        if(openDialog && selectedCommand.commandparameters.length > 0){
+        const selectedParameterGroupName = parameter_group_name || getPreferredCommandParameterGroupName(selectedCommand);
+        if(openDialog && (selectedCommand.commandparameters.length > 0 || getCommandParameterGroupNames(selectedCommand).length > 0)){
             setOpenParametersDialog(true);
             return;
         }
@@ -321,6 +325,7 @@ export const TaskFromUIButton = ({callback_id, callback_display_ids, cmd, ui_fea
                             command: selectedCommand.cmd,
                             params: parameters,
                             payload_type: selectedCommand?.payloadtype?.name,
+                            parameter_group_name: selectedParameterGroupName,
                             tasking_location: "command_line"}});
                 }else{
                     onSubmitTasking({variables: {
@@ -328,6 +333,7 @@ export const TaskFromUIButton = ({callback_id, callback_display_ids, cmd, ui_fea
                             command: selectedCommand.cmd,
                             params: JSON.stringify(parameters),
                             payload_type: selectedCommand?.payloadtype?.name,
+                            parameter_group_name: selectedParameterGroupName,
                             tasking_location: taskingLocation}});
                 }
                 
@@ -339,6 +345,7 @@ export const TaskFromUIButton = ({callback_id, callback_display_ids, cmd, ui_fea
                     callback_display_id: callbackData.callback_by_pk.display_id,
                         command: selectedCommand.cmd,
                         payload_type: selectedCommand?.payloadtype?.name,
+                        parameter_group_name: selectedParameterGroupName,
                         params: ""}});
             }else{
                 savedFinalVariables.current = parameters;
@@ -348,6 +355,7 @@ export const TaskFromUIButton = ({callback_id, callback_display_ids, cmd, ui_fea
                             command: selectedCommand.cmd,
                             payload_type: selectedCommand?.payloadtype?.name,
                             params: parameters,
+                            parameter_group_name: selectedParameterGroupName,
                             tasking_location: "command_line"}});
                 }else{
                     onSubmitTasking({variables: {
@@ -355,6 +363,7 @@ export const TaskFromUIButton = ({callback_id, callback_display_ids, cmd, ui_fea
                             command: selectedCommand.cmd,
                             payload_type: selectedCommand?.payloadtype?.name,
                             params: JSON.stringify(parameters),
+                            parameter_group_name: selectedParameterGroupName,
                             tasking_location: taskingLocation}});
                 }
             }

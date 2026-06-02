@@ -23,6 +23,7 @@ import { useTheme } from '@mui/material/styles';
 import {MythicStyledTooltip} from "../../MythicComponents/MythicStyledTooltip";
 import {getReadableTextColor, isValidHexColor} from "../../MythicComponents/MythicColorInput";
 import {copyStringToClipboard} from "../../utilities/Clipboard";
+import {getCommandParameterGroupNames} from "./TaskParameterGroups";
 
 const GetLoadedCommandsSubscription = gql`
 subscription GetLoadedCommandsSubscription($callback_id: Int!){
@@ -361,16 +362,13 @@ const parseCommandLineForParameterPreview = (commandLine, command) => {
     }
 }
 const determineCommandGroupNamesForParameterPreview = (command, parsed) => {
-    if(command.commandparameters.length === 0 || !parsed){
+    if(!parsed){
         return [];
     }
-    let commandGroupOptions = command.commandparameters.reduce((previous, parameter) => {
-        const groupName = parameter.parameter_group_name || "Default";
-        if(previous.includes(groupName)){
-            return previous;
-        }
-        return [...previous, groupName];
-    }, []);
+    let commandGroupOptions = getCommandParameterGroupNames(command);
+    if(command.commandparameters.length === 0){
+        return commandGroupOptions;
+    }
     for(const key of Object.keys(parsed)){
         if(key === "_"){
             continue;
@@ -817,7 +815,7 @@ export function CallbacksTabsTaskingInputPreMemo(props){
                             if(cmd.commandparameters[i]["required"] &&
                                 (!(cmd.commandparameters[i]["cli_name"] in parsed) || (IsRepeatableCLIParameterType(cmd.commandparameters[i]["parameter_type"])) ) &&
                                 IsCLIPossibleParameterType(cmd.commandparameters[i]["parameter_type"]) &&
-                                (cmdGroupNames.includes(cmd.commandparameters[i]["parameter_group_name"]) || cmdGroupNames.length === 0)){
+                                (cmdGroupNames.includes(cmd.commandparameters[i]["parameter_group_name"] || "Default") || cmdGroupNames.length === 0)){
                                 const newMsg = message.trim() + " -" + cmd.commandparameters[i]["cli_name"];
                                 setMessage(newMsg);
                                 return;
@@ -827,7 +825,7 @@ export function CallbacksTabsTaskingInputPreMemo(props){
                             if(!cmd.commandparameters[i]["required"] &&
                                 (!(cmd.commandparameters[i]["cli_name"] in parsed) || (IsRepeatableCLIParameterType(cmd.commandparameters[i]["parameter_type"])) ) &&
                                 IsCLIPossibleParameterType(cmd.commandparameters[i]["parameter_type"]) &&
-                                (cmdGroupNames.includes(cmd.commandparameters[i]["parameter_group_name"]) || cmdGroupNames.length === 0)){
+                                (cmdGroupNames.includes(cmd.commandparameters[i]["parameter_group_name"] || "Default") || cmdGroupNames.length === 0)){
                                 const newMsg = message.trim() + " -" + cmd.commandparameters[i]["cli_name"];
                                 setMessage(newMsg);
                                 return;
@@ -868,7 +866,7 @@ export function CallbacksTabsTaskingInputPreMemo(props){
                             // determine if we're looking at a valid flag name in lastFlag or if it's simply the start of a flag
                             //console.log("swapping parameter name, group options: ", cmdGroupNames);
                             let exactMatch = cmd.commandparameters.find(cur => 
-                                cmdGroupNames.includes(cur.parameter_group_name) && 
+                                cmdGroupNames.includes(cur.parameter_group_name || "Default") &&
                                 cur.cli_name === lastFlag.slice(1) &&
                                 IsCLIPossibleParameterType(cur.parameter_type) &&
                                 (!(cur.cli_name in parsed) || (IsRepeatableCLIParameterType(cur.parameter_type)) )
@@ -878,7 +876,7 @@ export function CallbacksTabsTaskingInputPreMemo(props){
                                 // what the user typed or what we filled out is an exact match to a parameter name
                                 // the options should be all parameters in that group except for the ones already supplied in parsed
                                 paramOptions = cmd.commandparameters.reduce( (prev, cur) => {
-                                    if(cmdGroupNames.includes(cur.parameter_group_name) && 
+                                    if(cmdGroupNames.includes(cur.parameter_group_name || "Default") &&
                                         cur.cli_name !== lastFlag.slice(1) &&
                                         IsCLIPossibleParameterType(cur.parameter_type) &&
                                         (!(cur.cli_name in parsed) || (IsRepeatableCLIParameterType(cur.parameter_type)) ) ){
@@ -891,7 +889,7 @@ export function CallbacksTabsTaskingInputPreMemo(props){
                             }else{
                                 // what the user typed isn't an exact match, so find things that start with what they're trying to type
                                 paramOptions = cmd.commandparameters.reduce( (prev, cur) => {
-                                    if(cmdGroupNames.includes(cur.parameter_group_name) && 
+                                    if(cmdGroupNames.includes(cur.parameter_group_name || "Default") &&
                                         cur.cli_name.toLowerCase().includes(lastFlag.slice(1).toLocaleLowerCase()) &&
                                         IsCLIPossibleParameterType(cur.parameter_type) &&
                                         (!(cur.cli_name in parsed) || (IsRepeatableCLIParameterType(cur.parameter_type)) ) ){
@@ -1449,7 +1447,7 @@ export function CallbacksTabsTaskingInputPreMemo(props){
             let currentGroupName = groupNames[i];
             let foundAllRequired = true;
             for(let j = 0; j < cmd.commandparameters.length; j++){
-                if(cmd.commandparameters[j]["parameter_group_name"] === currentGroupName){
+                if((cmd.commandparameters[j]["parameter_group_name"] || "Default") === currentGroupName){
                     if(cmd.commandparameters[j].required && (parsed[cmd.commandparameters[j].cli_name] === undefined &&
                     parsed[cmd.commandparameters[j].name] === undefined)){
                         foundAllRequired = false;
@@ -1470,18 +1468,13 @@ export function CallbacksTabsTaskingInputPreMemo(props){
         }
     }
     const determineCommandGroupName = (cmd, parsed) => {
-        if(cmd.commandparameters.length === 0){
-            return [];
-        }
         if(!parsed){
             return [];
         }
-        let cmdGroupOptions = cmd.commandparameters.reduce( (prev, cur) => {
-            if(prev.includes(cur.parameter_group_name)){
-                return [...prev];
-            }
-            return [...prev, cur.parameter_group_name];
-        }, []);
+        let cmdGroupOptions = getCommandParameterGroupNames(cmd);
+        if(cmd.commandparameters.length === 0){
+            return cmdGroupOptions;
+        }
         for(const key of Object.keys(parsed)){
             // for all the things we've parsed out so far, determine their parameter groups
             if( key !== "_"){
@@ -1492,7 +1485,7 @@ export function CallbacksTabsTaskingInputPreMemo(props){
                     //console.log(cmd.commandparameters[i], key)
                     if(cmd.commandparameters[i]["cli_name"] === key || cmd.commandparameters[i]["display_name"] === key || cmd.commandparameters[i]["name"] === key){
                         foundParamGroup = true;
-                        paramGroups.push(cmd.commandparameters[i]["parameter_group_name"])
+                        paramGroups.push(cmd.commandparameters[i]["parameter_group_name"] || "Default")
                     }
                 }
                 // now paramGroups has all the group names associated with `key`
@@ -1532,9 +1525,16 @@ export function CallbacksTabsTaskingInputPreMemo(props){
         let usedGroupName = groupNames[0];
         if(groupNames.includes("Default")){
             usedGroupName = "Default";
+        }else if(parsedCopy["_"].length > 0){
+            const firstGroupWithParameters = groupNames.find((groupName) => {
+                return cmd.commandparameters.some((parameter) => (parameter.parameter_group_name || "Default") === groupName);
+            });
+            if(firstGroupWithParameters){
+                usedGroupName = firstGroupWithParameters;
+            }
         }
         // figure out how to deal with positional parameters
-        const groupParameters = cmd.commandparameters.filter(c => c.parameter_group_name === usedGroupName);
+        const groupParameters = cmd.commandparameters.filter(c => (c.parameter_group_name || "Default") === usedGroupName);
         groupParameters.sort((a,b) => a.ui_position < b.ui_position ? -1 : 1);
         // now we have all of the parameters and they're sorted by `ui_position`
         console.log("groupParameters", groupParameters);
@@ -1678,7 +1678,8 @@ export function CallbacksTabsTaskingInputPreMemo(props){
 
     }
     const processCommandAndCommandLine = (cmd) => {
-        if(commandOptionsForcePopup.current && cmd.commandparameters.length === 0){
+        const commandGroupOptions = getCommandParameterGroupNames(cmd);
+        if(commandOptionsForcePopup.current && cmd.commandparameters.length === 0 && commandGroupOptions.length === 0){
             snackActions.info("No defined parameters for " +
                 cmd?.cmd + "( " + cmd?.payloadtype?.name + "), so no modal available", snackMessageStyles);
             return;
@@ -1694,9 +1695,7 @@ export function CallbacksTabsTaskingInputPreMemo(props){
                 throw("failed to parse json");
             }
             cmdGroupName = determineCommandGroupName(cmd, parsedWithPositionalParameters);
-            if(cmdGroupName !== undefined){
-                cmdGroupName.sort()
-            } else {
+            if(cmdGroupName === undefined){
                 snackActions.warning("Two or more of the specified parameters can't be used together", snackMessageStyles);
                 return;
             }
@@ -1714,9 +1713,7 @@ export function CallbacksTabsTaskingInputPreMemo(props){
             parsed = {...parsed};
             //console.log(message, parsed);
             cmdGroupName = determineCommandGroupName(cmd, parsed);
-            if(cmdGroupName !== undefined){
-                cmdGroupName.sort();
-            } else {
+            if(cmdGroupName === undefined){
                 snackActions.warning("Two or more of the specified parameters can't be used together", snackMessageStyles);
                 return;
             }
@@ -1730,6 +1727,11 @@ export function CallbacksTabsTaskingInputPreMemo(props){
                 }
                 if(parsedWithPositionalParameters["_"].length > 0){
                     snackActions.warning("Too many positional arguments given. Did you mean to quote some of them?", snackMessageStyles);
+                    return;
+                }
+                cmdGroupName = determineCommandGroupName(cmd, parsedWithPositionalParameters);
+                if(cmdGroupName === undefined){
+                    snackActions.warning("Two or more of the specified parameters can't be used together", snackMessageStyles);
                     return;
                 }
             }else{
@@ -1918,13 +1920,7 @@ export function CallbacksTabsTaskingInputPreMemo(props){
         if(commandGroupNames === undefined){
             return {state: "empty", command, message: "Parameters conflict across groups"};
         }
-        const previewGroupNames = commandGroupNames.length > 0 ? commandGroupNames : parameters.reduce((previous, parameter) => {
-            const groupName = parameter.parameter_group_name || "Default";
-            if(previous.includes(groupName)){
-                return previous;
-            }
-            return [...previous, groupName];
-        }, []);
+        const previewGroupNames = commandGroupNames.length > 0 ? commandGroupNames : getCommandParameterGroupNames(command);
         let activeParameter = undefined;
         try{
             const [lastSuppliedParameter] = getLastSuppliedArgument(command, trimmedMessage, parsed);

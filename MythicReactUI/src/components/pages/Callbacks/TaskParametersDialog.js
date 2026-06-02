@@ -18,6 +18,7 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import SegmentIcon from '@mui/icons-material/Segment';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
 import {MythicDialogButton, MythicDialogFooter} from "../../MythicComponents/MythicDialogLayout";
+import {getCommandParameterGroupNames, getPreferredCommandParameterGroupName} from "./TaskParameterGroups";
 
 //if we need to get all the loaded commands for the callback and filter, use this
 const GetLoadedCommandsQuery = gql`
@@ -346,11 +347,11 @@ export function TaskParametersDialog(props) {
         onCompleted: data => {
             // do an initial pass to see what other quries we need to make
             let requiredPiecesInitial = {all: false, loaded: false, edges: false, credentials: false};
-            let groupNames = [];
+            let groupNames = getCommandParameterGroupNames(data.command_by_pk);
+            if(groupNames.length === 0){
+                groupNames = ["Default"];
+            }
             data.command_by_pk.commandparameters.forEach( (cmd) => {
-                if(!groupNames.includes(cmd.parameter_group_name)){
-                    groupNames.push(cmd.parameter_group_name);
-                }
                 if(cmd.type === "LinkInfo"){
                     requiredPiecesInitial["edges"] = true;
                 }else if(cmd.choices_are_all_commands){
@@ -367,12 +368,11 @@ export function TaskParametersDialog(props) {
                     requiredPiecesInitial["credentials"] = true;
                 }
             });
-            groupNames.sort();
             setParameterGroups(groupNames);
             if(props.command.groupName && groupNames.includes(props.command.groupName)){
                 setSelectedParameterGroup(props.command.groupName);
-            } else if(!groupNames.includes("Default")){
-                setSelectedParameterGroup(groupNames[0]);
+            } else {
+                setSelectedParameterGroup(getPreferredCommandParameterGroupName(data.command_by_pk));
             }
             setCommandInfo({...data.command_by_pk});
             if(requiredPiecesInitial["edges"]){getAllEdges({variables: {callback_id: props.callback_id} });}

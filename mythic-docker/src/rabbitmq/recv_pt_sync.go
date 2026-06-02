@@ -172,6 +172,7 @@ type CommandAttribute struct {
 	FilterCommandAvailabilityByAgentBuildParameters map[string]string      `json:"filter_by_build_parameter" mapstructure:"filter_by_build_parameter"`
 	Dependencies                                    []string               `json:"dependencies" mapstructure:"dependencies"`
 	Groups                                          []string               `json:"groups" mapstructure:"groups"`
+	ParameterGroups                                 []interface{}          `json:"parameter_groups" mapstructure:"parameter_groups"`
 	AdditionalAttributes                            map[string]interface{} `json:"additional_items" mapstructure:",remain"`
 }
 
@@ -859,6 +860,9 @@ func updatePayloadTypeCommands(in PayloadTypeSyncMessage, payloadtype databaseSt
 							"load_only":                 newCommand.CommandAttributes.CommandCanOnlyBeLoadedLater,
 							"filter_by_build_parameter": newCommand.CommandAttributes.FilterCommandAvailabilityByAgentBuildParameters,
 						}
+						if len(newCommand.CommandAttributes.ParameterGroups) > 0 {
+							attributes["parameter_groups"] = newCommand.CommandAttributes.ParameterGroups
+						}
 						for k, v := range newCommand.CommandAttributes.AdditionalAttributes {
 							attributes[k] = v
 						}
@@ -932,6 +936,9 @@ func updatePayloadTypeCommands(in PayloadTypeSyncMessage, payloadtype databaseSt
 			"suggested_command":         newCommand.CommandAttributes.CommandIsSuggested,
 			"load_only":                 newCommand.CommandAttributes.CommandCanOnlyBeLoadedLater,
 			"filter_by_build_parameter": newCommand.CommandAttributes.FilterCommandAvailabilityByAgentBuildParameters,
+		}
+		if len(newCommand.CommandAttributes.ParameterGroups) > 0 {
+			attributes["parameter_groups"] = newCommand.CommandAttributes.ParameterGroups
 		}
 		for k, v := range newCommand.CommandAttributes.AdditionalAttributes {
 			attributes[k] = v

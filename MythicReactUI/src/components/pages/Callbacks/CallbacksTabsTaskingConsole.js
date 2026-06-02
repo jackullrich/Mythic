@@ -14,6 +14,7 @@ import { MythicStyledTooltip } from '../../MythicComponents/MythicStyledTooltip'
 import {taskingDataFragment, createTaskingMutation} from "./CallbackMutations";
 import { validate as uuidValidate } from 'uuid';
 import {getSkewedNow} from "../../utilities/Time";
+import {getCommandParameterGroupNames, getPreferredCommandParameterGroupName} from "./TaskParameterGroups";
 
 
 export function CallbacksTabsTaskingConsoleLabel(props){
@@ -288,18 +289,24 @@ export const CallbacksTabsTaskingConsolePanel = ({tabInfo, index, value, onClose
             newTaskingLocation = "browserscript_modified";
         }
         if(cmd.commandparameters.length === 0){
+            const parameterGroupName = cmdGroupNames[0] || getPreferredCommandParameterGroupName(cmd);
+            if(force_parsed_popup && getCommandParameterGroupNames(cmd).length > 0){
+                setCommandInfo({...cmd, "parsedParameters": parsed, groupName: parameterGroupName});
+                setOpenParametersDialog(true);
+                return;
+            }
             // if there are no parameters, just send whatever the user types along
             onCreateTask({callback_display_id: tabInfo.displayID,
                 command: cmd.cmd,
                 params: params,
-                parameter_group_name: "Default",
+                parameter_group_name: parameterGroupName,
                 tasking_location: newTaskingLocation,
                 payload_type: cmd.payloadtype?.name,
             });
         }else{
             // check if there's a "file" component that needs to be displayed
             const fileParamExists = cmd.commandparameters.find(param => {
-                if(param.parameter_type === "File" && cmdGroupNames.includes(param.parameter_group_name)){
+                if(param.parameter_type === "File" && cmdGroupNames.includes(param.parameter_group_name || "Default")){
                     if(!(param.cli_name in parsed || param.name in parsed || param.display_name in parsed)){
                         return true;
                     }
@@ -316,12 +323,12 @@ export const CallbacksTabsTaskingConsolePanel = ({tabInfo, index, value, onClose
             //console.log("missing File for group? ", fileParamExists, cmdGroupNames);
             let missingRequiredPrams = false;
             if(cmdGroupNames.length === 1){
-                const missingParams = cmd.commandparameters.filter(param => param.required && param.parameter_group_name === cmdGroupNames[0] && !(param.cli_name in parsed || param.name in parsed || param.display_name in parsed));
+                const missingParams = cmd.commandparameters.filter(param => param.required && (param.parameter_group_name || "Default") === cmdGroupNames[0] && !(param.cli_name in parsed || param.name in parsed || param.display_name in parsed));
                 if(missingParams.length > 0){
                     missingRequiredPrams = true;
                     console.log("missing required params", missingParams,parsed);
                 }
-            }else if(cmdGroupNames > 1 && !force_parsed_popup){
+            }else if(cmdGroupNames.length > 1 && !force_parsed_popup){
                 // need to force a popup because the tasking is ambiguous
                 console.log("command is ambiguous");
                 force_parsed_popup = true;
