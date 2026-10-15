@@ -44,6 +44,7 @@ import { MythicAgentSVGIconNoTooltip} from "../../MythicComponents/MythicAgentSV
 import {ImageWithAuth} from "../../utilities/ImageWithAuth";
 import {MythicDialogButton, MythicDialogFooter} from "../../MythicComponents/MythicDialogLayout";
 import {MythicChip} from "../../MythicComponents/MythicChip";
+import {MythicInlineMarkdown} from "../../utilities/MythicInlineMarkdown";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -479,7 +480,7 @@ const C2SelectLinkCommandDialog = ({options = [], callback, onSubmit, onClose}) 
                                                 }
                                             </div>
                                             <Typography component="div" className="mythic-c2-action-card-description">
-                                                {command.help_cmd || command.description || "No command help available."}
+                                                {command.help_cmd || (command.description ? <MythicInlineMarkdown value={command.description} /> : "No command help available.")}
                                             </Typography>
                                         </div>
                                     </button>

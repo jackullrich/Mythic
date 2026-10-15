@@ -22,6 +22,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import {updateCredentialDeleted} from "../Search/CredentialTable";
 import CloudUploadTwoToneIcon from '@mui/icons-material/CloudUploadTwoTone';
 import {MythicChip, SquareChip} from '../../MythicComponents/MythicChip';
+import {MythicInlineMarkdown} from "../../utilities/MythicInlineMarkdown";
 
 export const getDynamicQueryParamsString = `
 mutation getDynamicParamsMutation($callback_display_id: Int!, $command: String!, $payload_type: String!, $parameter_name: String!, $other_parameters: jsonb){
@@ -1341,7 +1342,7 @@ export function TaskParametersDialogRow(props){
                     </Box>
                 </Box>
                 <Typography component="div" className={`mythic-task-parameter-description text-xs leading-140 text-muted${props.description ? "" : " mythic-task-parameter-description-muted text-disabled"} wrap-anywhere`}>
-                    {props.description || "No description provided"}
+                    {props.description ? <MythicInlineMarkdown value={props.description} /> : "No description provided"}
                 </Typography>
                 <Typography component="div" className="mythic-task-parameter-name text-xs leading-135 wrap-anywhere text-disabled font-mono">
                     {props.name}

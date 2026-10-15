@@ -5216,3 +5216,19 @@ html, #root {
     padding-bottom: 1.5rem;
     padding-top: 1.5rem;
 }
+.mythic-inline-markdown-paragraph {
+    display: block;
+}
+.mythic-inline-markdown-paragraph + .mythic-inline-markdown-paragraph {
+    margin-top: 0.5em;
+}
+.mythic-inline-markdown-code {
+    background: var(--mythic-color-surface-muted);
+    border: 1px solid var(--mythic-color-border-subtle);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.875em;
+    padding: 0.0625rem 0.25rem;
+}
+.mythic-inline-markdown-link {
+    color: var(--mythic-color-info-base);
+}

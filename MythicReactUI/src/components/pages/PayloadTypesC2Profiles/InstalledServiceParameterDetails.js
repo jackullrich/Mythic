@@ -1,5 +1,6 @@
 import React from 'react';
 import {MythicStatusChip} from "../../MythicComponents/MythicStatusChip";
+import {MythicInlineMarkdown} from "../../utilities/MythicInlineMarkdown";
 
 export const formatParameterValue = (value, emptyValue = "Not set") => {
     if (value === undefined || value === null || value === "") {
@@ -53,7 +54,7 @@ export function BuildParameterList({parameters}) {
                         <div>
                             <div className="mythic-parameter-title text-sm font-800 leading-125 min-w-0 wrap-anywhere text-primary">{param.name}</div>
                             <div className="mythic-parameter-description text-xs leading-140 wrap-anywhere text-muted whitespace-pre-wrap">
-                                {param.description || "No description provided."}
+                                {param.description ? <MythicInlineMarkdown value={param.description} /> : "No description provided."}
                             </div>
                         </div>
                         <div className="mythic-status-stack items-center flex flex-wrap gap-3 min-w-0">

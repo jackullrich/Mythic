@@ -18,6 +18,7 @@ import Tabs from '@mui/material/Tabs';
 import CloseIcon from '@mui/icons-material/Close';
 import {useMythicLazyQuery} from "../../utilities/useMythicLazyQuery";
 import {ConfigurationSummary} from "./Step1SelectOS";
+import {MythicInlineMarkdown} from "../../utilities/MythicInlineMarkdown";
 
 
 const GET_Payload_Types = gql`
@@ -406,7 +407,7 @@ export function Step4C2Profiles(props){
                                 </div>
                                 <div>
                                     <span className="mythic-create-meta-label text-xs font-750 leading-120 text-muted">Description</span>
-                                    <div className="mythic-create-meta-value text-sm leading-135 wrap-anywhere text-primary">{props.buildOptions.description}</div>
+                                    <div className="mythic-create-meta-value text-sm leading-135 wrap-anywhere text-primary"><MythicInlineMarkdown value={props.buildOptions.description} /></div>
                                 </div>
                             </div>
                         </div>

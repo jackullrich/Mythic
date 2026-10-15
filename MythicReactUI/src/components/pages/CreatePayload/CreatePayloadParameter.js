@@ -42,6 +42,7 @@ import {
     MythicDialogFooter,
     MythicDialogSection,
 } from '../../MythicComponents/MythicDialogLayout';
+import {MythicInlineMarkdown} from "../../utilities/MythicInlineMarkdown";
 
 export const getDynamicQueryBuildParameterParams = gql`
 mutation getDynamicBuildParamsMutation($payload_type: String!, $parameter_name: String!, $selected_os: String!, $other_parameters: jsonb){
@@ -1298,7 +1299,7 @@ export function CreatePayloadParameter({onChange, parameter_type, default_value,
                     </div>
                     {description &&
                         <Typography component="div" className="mythic-create-parameter-description text-xs text-muted">
-                            {description}
+                            <MythicInlineMarkdown value={description} />
                         </Typography>
                     }
                 </div>
@@ -1316,7 +1317,7 @@ export function CreatePayloadParameter({onChange, parameter_type, default_value,
                             {display_name ? display_name : name}
                         </Typography>
                         <Typography style={{fontSize: theme.typography.pxToRem(15), marginLeft: "10px"}}>
-                            {description}
+                            <MythicInlineMarkdown value={description} />
                         </Typography>
 
                         {isModified ? (

@@ -23,6 +23,7 @@ import {MythicLoadingState, MythicTableEmptyState} from '../../MythicComponents/
 import MythicStyledTableCell from '../../MythicComponents/MythicTableCell';
 import {MythicTablePagination} from '../../MythicComponents/MythicTablePagination';
 import {GetGroupedParameters} from '../CreatePayload/BuildParameterUtils';
+import {MythicInlineMarkdown} from "../../utilities/MythicInlineMarkdown";
 
 const PAGE_SIZE = 25;
 const WRAPPER_CONDITION_PARAMETER_TYPES = new Set([
@@ -163,7 +164,7 @@ export function Step3SelectPayload(props){
                                 </div>
                                 <div>
                                     <span className="mythic-create-meta-label text-xs font-750 leading-120 text-muted">Description</span>
-                                    <div className="mythic-create-meta-value text-sm leading-135 wrap-anywhere text-primary">{props.buildOptions.description}</div>
+                                    <div className="mythic-create-meta-value text-sm leading-135 wrap-anywhere text-primary"><MythicInlineMarkdown value={props.buildOptions.description} /></div>
                                 </div>
                             </div>
                         </div>

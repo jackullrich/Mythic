@@ -18,6 +18,7 @@ import SegmentIcon from '@mui/icons-material/Segment';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
 import {MythicDialogButton, MythicDialogFooter} from "../../MythicComponents/MythicDialogLayout";
 import {SquareChip} from "../../MythicComponents/MythicChip";
+import {MythicInlineMarkdown} from "../../utilities/MythicInlineMarkdown";
 
 //if we need to get all the loaded commands for the callback and filter, use this
 const GetLoadedCommandsQuery = gql`
@@ -1093,8 +1094,8 @@ export function TaskParametersDialog(props) {
                 <Typography component="div" className="mythic-task-parameters-section-label text-primary text-xs font-800 leading-125">
                     Description
                 </Typography>
-                <Typography component="pre" className="mythic-task-parameters-description text-sm leading-145 wrap-anywhere text-muted whitespace-pre-wrap">
-                    {commandInfo.description || "No description provided."}
+                <Typography component="div" className="mythic-task-parameters-description text-sm leading-145 wrap-anywhere text-muted whitespace-pre-wrap">
+                    {commandInfo.description ? <MythicInlineMarkdown value={commandInfo.description} /> : "No description provided."}
                 </Typography>
             </Box>
             {parameterGroups.length > 1 &&

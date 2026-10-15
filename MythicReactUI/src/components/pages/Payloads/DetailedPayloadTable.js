@@ -42,6 +42,7 @@ import {MythicErrorState, MythicLoadingState} from "../../MythicComponents/Mythi
 import {MythicSectionHeader} from "../../MythicComponents/MythicPageHeader";
 import {FileDownloadLinkWithAuth} from "../../utilities/FileDownloadWithAuth";
 import {ScriptingCommandDialog} from "../PayloadTypesC2Profiles/PayloadTypeCommandsDialog";
+import {MythicInlineMarkdown} from "../../utilities/MythicInlineMarkdown";
 
 
 const GET_Payload_Details = gql`
@@ -716,7 +717,7 @@ function DetailedPayloadInnerTable(props){
                                     {cmd.name}
                                 </Typography>
                                 <Typography style={{fontSize: theme.typography.pxToRem(15), marginLeft: "10px"}}>
-                                    {cmd.description}
+                                    <MythicInlineMarkdown value={cmd.description} />
                                 </Typography>
                             </TableCell>
                             <TableCell>
@@ -781,7 +782,7 @@ function DetailedPayloadInnerTable(props){
                                                 {cmd.name}
                                             </Typography>
                                             <Typography style={{fontSize: theme.typography.pxToRem(15), marginLeft: "10px"}}>
-                                                {cmd.description}
+                                                <MythicInlineMarkdown value={cmd.description} />
                                             </Typography>
                                         </TableCell>
                                         <TableCell>

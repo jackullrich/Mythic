@@ -15,6 +15,7 @@ import {MythicAgentSVGIcon} from "../../MythicComponents/MythicAgentSVGIcon";
 import MythicTextField from "../../MythicComponents/MythicTextField";
 import SearchIcon from '@mui/icons-material/Search';
 import InputAdornment from '@mui/material/InputAdornment';
+import {MythicInlineMarkdown} from "../../utilities/MythicInlineMarkdown";
 
 const GET_Payload_Types = gql`
 query getCommands($payloadType: String!) {
@@ -160,7 +161,7 @@ export function Step3SelectCommands(props){
                                     </div>
                                     <div>
                                         <span className="mythic-create-meta-label text-xs font-750 leading-120 text-muted">Description</span>
-                                        <div className="mythic-create-meta-value text-sm leading-135 wrap-anywhere text-primary">{props.buildOptions.description}</div>
+                                        <div className="mythic-create-meta-value text-sm leading-135 wrap-anywhere text-primary"><MythicInlineMarkdown value={props.buildOptions.description} /></div>
                                     </div>
                                 </div>
                             </div>
@@ -200,7 +201,7 @@ export function Step3SelectCommands(props){
                                     </div>
                                     <div>
                                         <span className="mythic-create-meta-label text-xs font-750 leading-120 text-muted">Description</span>
-                                        <div className="mythic-create-meta-value text-sm leading-135 wrap-anywhere text-primary">{hoveredCommand.description}</div>
+                                        <div className="mythic-create-meta-value text-sm leading-135 wrap-anywhere text-primary"><MythicInlineMarkdown value={hoveredCommand.description} /></div>
                                     </div>
                                 </div>
                             ) : (

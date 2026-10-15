@@ -37,6 +37,7 @@ import Switch from '@mui/material/Switch';
 import {MythicSectionHeader} from "../../MythicComponents/MythicPageHeader";
 import {FileDownloadLinkWithAuth} from "../../utilities/FileDownloadWithAuth";
 import {ScriptingCommandDialog} from "../PayloadTypesC2Profiles/PayloadTypeCommandsDialog";
+import {MythicInlineMarkdown} from "../../utilities/MythicInlineMarkdown";
 
 const GET_Payload_Details = gql`
 query GetCallbackDetails($callback_id: Int!) {
@@ -472,7 +473,7 @@ export function DetailedCallbackTable(props){
                   {
                     buildParameters.map( (cmd, i) => (
                         <TableRow key={"buildprop" + i + "for" + data.callback_by_pk.payload.id} hover>
-                            <TableCell>{cmd.description}</TableCell>
+                            <TableCell><MythicInlineMarkdown value={cmd.description} /></TableCell>
                             <TableCell>
                             {
                                 cmd.parameter_type === "Dictionary" ? (
@@ -540,7 +541,7 @@ export function DetailedCallbackTable(props){
                               {
                                 c2.parameters.map( (cmd, j) => (
                                     <TableRow key={"c2frag" + data.callback_by_pk.payload.id + c2.c2_profile + j} hover>
-                                        <TableCell>{cmd.description}</TableCell>
+                                        <TableCell><MythicInlineMarkdown value={cmd.description} /></TableCell>
                                         <TableCell>
                                             <ParseForDisplay cmd={cmd} />
                                             {cmd.enc_key === null ? null : (<React.Fragment>

@@ -24,6 +24,7 @@ import {
     ParameterCodeBlock,
     ParameterMetadataItem
 } from "./InstalledServiceParameterDetails";
+import {MythicInlineMarkdown} from "../../utilities/MythicInlineMarkdown";
 
 const GET_Payload_Details = gql`
 query GetPayloadDetails($payload_name: String!) {
@@ -156,7 +157,7 @@ export function PayloadTypeCommandDialog({service, payload_name, onClose}) {
                                     </div>
                                 </TableCell>
                                 <TableCell>{param.version}</TableCell>
-                                <TableCell>{param.description}</TableCell>
+                                <TableCell><MythicInlineMarkdown value={param.description} /></TableCell>
                                 <TableCell>
                                     <div className="items-center flex flex-wrap gap-3 flex-nowrap">
                                         <MythicStyledTooltip title="Documentation">
@@ -315,7 +316,7 @@ const ScriptingParameterCard = ({commandName, param}) => {
                 <div>
                     <div className="mythic-parameter-title text-sm font-800 leading-125 min-w-0 wrap-anywhere text-primary">{param.name}</div>
                     <div className="mythic-parameter-description text-xs leading-140 wrap-anywhere text-muted whitespace-pre-wrap">
-                        {param.description || "No description provided."}
+                        {param.description ? <MythicInlineMarkdown value={param.description} /> : "No description provided."}
                     </div>
                 </div>
                 <div className="mythic-status-stack items-center flex flex-wrap gap-3 min-w-0">
